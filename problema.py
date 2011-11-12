@@ -102,11 +102,11 @@ class Problema:
         self._condiciones = deepcopy(condiciones)
 
 
-    def eval(self, fenotipo):
+    def eval_fitness(self, fenotipo):
         assert(isinstance(fenotipo, list))
         x = self._lim_inf
         ajuste = 0.0
-        parseo_completo, program = parse_program(self._bnf, fenotipo)
+        parseo_completo, fin, program = parse_program(self._bnf, fenotipo)
         f = lambda x: eval(program)
 
         if parseo_completo:
@@ -130,10 +130,11 @@ class Problema:
             satisfaccion += fitness
                 
 
-        return self._peso_ajuste*ajuste + self._peso_satisfaccion * mult_satisfaccion * satisfaccion
+        fitness = self._peso_ajuste*ajuste + self._peso_satisfaccion * mult_satisfaccion * satisfaccion
+        return fin, fitness
 
     def compute_program(self, lista):
-        _, program = parse_program(self._bnf, lista)
+        _, __, program = parse_program(self._bnf, lista)
         return program
 
     def plotear(self, program):

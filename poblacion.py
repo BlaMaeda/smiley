@@ -14,11 +14,15 @@ class Pair:
         return "%i-%f" % (self.indice, self.fitness)
 
 class Poblacion:
-    def __init__(self, n, l, problema, pc=0.8, pm=0.05, tm='s', bg=0.1, elit=True, ff=1000.0):
+    def __init__(self, n, l, problema, ml=None, pc=0.8, pm=0.05, tm='s', bg=0.1, elit=True, ff=1000.0):
         random_module.seed()
 
         self._n = n
         self._l = l
+        if ml == None:
+            self._max_length = 2*l
+        else:
+            self._max_length = ml
         self._problema = problema
         self._prob_cruza = pc
         self._prob_mutacion = pm
@@ -41,7 +45,8 @@ class Poblacion:
         return fitness_list
 
     def _compute_fitness(self, individuo):
-        return self._problema.eval(individuo)
+        fin, fitness = self._problema.eval_fitness(individuo)
+        return fitness
 
 
     def get_best_fitness(self):
@@ -155,5 +160,5 @@ class Poblacion:
 eq1 = "4*x**2*_y''_ + 17*_y_&_y(1)_+1&_y'(1)_+0.5"
 eq2 = "_y''_ - _y_&_y(0)_-1&_y'(0)_-1"
 eq3 = "_y''_ + _y_&_y(0)_-1&_y'(0)_-2"
-probl = Problema(bnf_filename="bnf_lineal.txt",ec=eq3,li=0,ps=10.0)
+probl = Problema(bnf_filename="bnf.txt",ec="_y_ - x",li=0,ps=10.0)
 pobl = Poblacion(100, 20, probl, pm=0.1, tm='s')

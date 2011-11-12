@@ -54,7 +54,7 @@ def parse_bnf(bnf):
             pass
     return bnf_dict
 
-def parse_program(bnf, indiv, wrap=False):
+def parse_program(bnf, indiv):
     if not isinstance(bnf, dict):
         msg = "bnf must be a dict"
         raise ValueError(msg)
@@ -72,10 +72,7 @@ def parse_program(bnf, indiv, wrap=False):
         item = prg_list[i]
         if item != '' and item[0] == LEFT_DEL and item[-1] == RIGHT_DEL:
             if j == len(indiv):
-                if wrap:
-                    pass # aca va el wrapping
-                else:
-                    break
+                break
             ind = indiv[j] % len(bnf[item])
             replacement = bnf[item][ind]
             replacement = re.split(VARIABLE_FORMAT, replacement)
@@ -85,4 +82,7 @@ def parse_program(bnf, indiv, wrap=False):
             i += 1
     
     program = ''.join(prg_list)
-    return complete, program
+    
+    return complete, j, program
+
+bnf = parse_bnf(bnf)
