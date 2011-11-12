@@ -40,14 +40,18 @@ class Poblacion:
 
     def _compute_fitness_list(self, individuos):
         fitness_list = []
-        for i, indiv in enumerate(individuos):
-            fitness_list.append(Pair(i, self._compute_fitness(indiv)))
+        for i in xrange(len(individuos)):
+            fitness_list.append(Pair(i, self._compute_fitness(i)))
         return fitness_list
 
-    def _compute_fitness(self, individuo):
-        fin, fitness = self._problema.eval_fitness(individuo)
+    def _compute_fitness(self, ind_indiv):
+        fin, fitness = self._problema.eval_fitness(self._individuos[ind_indiv])
+        if fin != -1: # individuo valido
+            self._contract_indiv(ind_indiv, fin)
         return fitness
 
+    def _contract_indiv(self, ind_indiv, fin):
+        self._individuos[ind_indiv] = self._individuos[ind_indiv][:fin]
 
     def get_best_fitness(self):
         return min(self._fitness_list).fitness
@@ -85,14 +89,14 @@ class Poblacion:
 
     def evolucionar(self):
         n = self._n
-	cant_padres = round(n * self._brecha_gen)
-	aptitudes = sorted(self._fitness_list)
-	
-	assert(len(self._next_generation) == 0)
+        cant_padres = round(n * self._brecha_gen)
+        aptitudes = sorted(self._fitness_list)
 
-	if (self._elitismo):
+        assert(len(self._next_generation) == 0)
+
+        if (self._elitismo):
             self._next_generation.append(self._individuos[aptitudes[0].indice])
-	
+        
         i = 0
         while i < cant_padres:
             fin_ventana = n-i-1
@@ -101,20 +105,20 @@ class Poblacion:
             self._cruza(a, b)
             self._next_generation.append(self._individuos[a if randint(0,1) else b])
             i += 1
-	
-	while len(self._next_generation) < n:
+        
+        while len(self._next_generation) < n:
             fin_ventana = n-i-1
             a = randint(0, fin_ventana)
             b = randint(0, fin_ventana)
             self._cruza(a, b)
             i += 1
-	
-	if len(self._next_generation) > n:
+        
+        if len(self._next_generation) > n:
             ind_eliminar = randint(1 if self._elitismo else 0, n-1)
             self._next_generation = self._next_generation[:ind_eliminar] + self._next_generation[ind_eliminar+1:]
-	
-	assert(len(self._next_generation) == n)
-	
+        
+        assert(len(self._next_generation) == n)
+        
         self._individuos = [deepcopy(i) for i in self._next_generation]
         assert(self._individuos == self._next_generation)
         self._next_generation = []
@@ -122,12 +126,12 @@ class Poblacion:
     def _cruza(self, a, b):
         assert(isinstance(a, int) and isinstance(b, int))
 
-	if random() < self._prob_cruza:
+        if random() < self._prob_cruza:
             hijo1, hijo2 = self._reproducir(a, b)
-	else:
+        else:
             hijo1 = deepcopy(self._individuos[a])
             hijo2 = deepcopy(self._individuos[b])
-	
+        
         if self._tipo_mutacion == 's':
             if random() < self._prob_mutacion:
                     self._mutar(hijo1)
@@ -136,9 +140,9 @@ class Poblacion:
         elif self._tipo_mutacion == 'm':
             self._mutar(hijo1)
             self._mutar(hijo2)
-	
-	self._next_generation.append(hijo1)
-	self._next_generation.append(hijo2)
+        
+        self._next_generation.append(hijo1)
+        self._next_generation.append(hijo2)
         
     def _reproducir(self, a, b):
         punto_de_cruza = randint(1, self._l-1)
@@ -160,5 +164,5 @@ class Poblacion:
 eq1 = "4*x**2*_y''_ + 17*_y_&_y(1)_+1&_y'(1)_+0.5"
 eq2 = "_y''_ - _y_&_y(0)_-1&_y'(0)_-1"
 eq3 = "_y''_ + _y_&_y(0)_-1&_y'(0)_-2"
-probl = Problema(bnf_filename="bnf.txt",ec="_y_ - x",li=0,ps=10.0)
+probl = Problema(bnf_filename="bnf.txt",ec=eq3,li=0,ps=10.0)
 pobl = Poblacion(100, 20, probl, pm=0.1, tm='s')
