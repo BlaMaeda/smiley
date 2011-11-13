@@ -1,0 +1,22 @@
+- El mutar tiene chances de dejar el cromosoma como estaba antes. Esto claramente no está bien (la
+probabilidad de mutar es la que determina si un cromosoma cambia o no: si resulta que cambia,
+debería cambiar sí o sí), pero no sé si es significativamente malo. Una forma de arreglarlo es
+sumarle o restarle uno al número si da lo mismo, pero esto no le da la mismas chances a todas las
+alternativas. Otra forma es hacer rand hasta que aparezca una distinta (teniendo cuidado con las
+reglas que tienen un solo terminal (esto, de todas formas, podria verse y excluir de los terminales
+mutables a los que no tienen alternativas)).
+
+- Como está implementado en este momento, la mutacion toma un gen que da un terminal y lo cambia.
+  Esto es redondo si cada regla produce sólo símbolos o sólo terminales (que no es el caso de
+  ninguna de las que tenemos). Si no es así, un gen que antes daba un terminal ahora da un
+  no-terminal, y todo el cromosoma cambia bastante (más mientras más al principio esté el gen
+  cambiado (creo)). Una solucion combinada de este punto y el anterior seria: hacer la gramatica de
+  forma tal que cada regla produzca efectivamente sólo terminales o sólo no-terminales, y hacer la
+  mutacion de forma tal que cambie sólo los genes que afectan reglas que producen sólo terminales y
+  tienen más de una opción.
+  Convertir una gramática que tiene reglas "mixtas" (que producen terminales y no-terminales) es
+  fácil: para cada regla que mixta, todos los terminales se convierten en símbolos, y las reglas
+  para estos símbolos son esos mismos terminales. Esto tiene un aire a la forma normal de Chomsky,
+  pero no es exactamente lo mismo. Se podría "limitar" la librería a gramáticas en CNF, pero no sé
+  si vale la pena. Limitar entre comillas, porque cualquier gramática libre de contexto puede
+  transformarse a CNF (lo cual, a su vez, podría automatizarse sin mucho problema).

@@ -1,9 +1,13 @@
 import random as random_module
 import math
+import pylab
 from random import randint, random
-from copy import deepcopy
+from copy import copy
 from pprint import pprint
-from problema import Problema
+from problem import Problem
+from grammar import Grammar
+from crom import Crom
+from parser import parse_bnf #XXX
 
 class Pair:
     def __init__(self, i, f):
@@ -14,78 +18,95 @@ class Pair:
         return "%i-%f" % (self.indice, self.fitness)
 
 class Poblacion:
-    def __init__(self, n, l, problema, ml=None, pc=0.8, pm=0.05, tm='s', bg=0.1, elit=True, ff=1000.0):
+    def __init__(self, n, l, problem, grammar, ml=None, pc=0.8, pm=0.05, bg=0.1, elit=True, ff=1000.0, cm="homologous"):
         random_module.seed()
-
+        
         self._n = n
         self._l = l
         if ml == None:
             self._max_length = 2*l
         else:
             self._max_length = ml
-        self._problema = problema
+        self._problem = problem
+        self._grammar = grammar
         self._prob_cruza = pc
         self._prob_mutacion = pm
-        self._tipo_mutacion = tm
         self._brecha_gen = bg
         self._elitismo = elit
         self._fitness_fail = ff
         self._next_generation = []
-
+        self._crossover_method = cm
+        
         self._individuos = []
         for i in xrange(n):
-            indiv = [randint(0, 255) for j in xrange(l)]
-            self._individuos.append(indiv)
+            self._individuos.append(Crom(l, self._max_length, self._problem, self._grammar,
+                                         cross_meth = self._crossover_method))
 
+####
 
     def _compute_fitness_list(self, individuos):
         fitness_list = []
-        for i in xrange(len(individuos)):
-            fitness_list.append(Pair(i, self._compute_fitness(i)))
+        for i, indiv in enumerate(individuos):
+            fitness_list.append(Pair(i, indiv.eval_fitness()))
         return fitness_list
 
-    def _compute_fitness(self, ind_indiv):
-        fin, fitness = self._problema.eval_fitness(self._individuos[ind_indiv])
+####
+
+    def _compute_fitness(self, ind_indiv): # XXX borrable
+        fin, fitness = self._problem.eval_fitness(self._individuos[ind_indiv])
         if fin != -1: # individuo valido
             self._contract_indiv(ind_indiv, fin)
         return fitness
 
-    def _contract_indiv(self, ind_indiv, fin):
-        self._individuos[ind_indiv] = self._individuos[ind_indiv][:fin]
+####
 
     def get_best_fitness(self):
         return min(self._fitness_list).fitness
 
+####
+
     def get_best_index(self):
         return min(self._fitness_list).indice
 
+####
+
     def get_best_member(self):
-        best = self._individuos[self.get_best_index()]
-        return self._problema.compute_program(best)
+        best_indiv = self._individuos[self.get_best_index()]
+        return best_indiv._program
+
+####
 
     def ev_and_print(self, maxit, tol):
         assert(isinstance(maxit, int))
         
+        self._medians = []
         i = 0
-        mejor_fitness_anterior = 1e5
         while i < maxit:
             self._fitness_list = sorted(self._compute_fitness_list(self._individuos))
             mejor_fitness = self.get_best_fitness()
-            print "mejor fitness: ", mejor_fitness, "fitness mediana: ", self._fitness_list[self._n/2].fitness
+            self._medians.append(self._get_median())
+            print "Generacion", i
+            print "mejor fitness:", mejor_fitness, \
+                  "fitness mediana:", self._fitness_list[self._n/2].fitness,\
+                  "invalidos:", sum(1 for indiv in self._individuos if not indiv._valid),\
+                  "promedio longitud", self._average_length()
+            #self.show_all_indivs(); xxx = raw_input()
+            #print str([len(j) for j in self._individuos])
             #print "fitness medio: ", sum(j.fitness for j in self._fitness_list)/float(self._n)
             #print [str(j) for j in sorted(self._fitness_list)]
-            assert(mejor_fitness <= mejor_fitness_anterior)
             if mejor_fitness <= tol:
                 break
             self.evolucionar()
             i += 1
-            mejor_fitness_anterior = mejor_fitness
 
         if i == maxit:
             print "No hubo convergencia"
         else:
             print "Convergencia en %i generaciones" % i
 
+        self.plot_medians()
+
+####
 
     def evolucionar(self):
         n = self._n
@@ -119,50 +140,82 @@ class Poblacion:
         
         assert(len(self._next_generation) == n)
         
-        self._individuos = [deepcopy(i) for i in self._next_generation]
-        assert(self._individuos == self._next_generation)
+        self._individuos = [copy(i) for i in self._next_generation]
+        try:
+            assert(self._individuos == self._next_generation)
+        except: 
+            for i in xrange(len(self._individuos)):
+                indiv = self._individuos[i]
+                ng = self._next_generation[i]
+                try:
+                    assert indiv == ng
+                except:
+                    raise AssertionError, ("index %i" % i)
+                #print "Individuo", i
+                #print "Genes:", str(indiv._genes)
+                #print "Genes:", str(ng._genes)
+                #print "Ext:", str(indiv._extended_cromosom)
+                #print "Ext:", str(ng._extended_cromosom)
         self._next_generation = []
+
+####
 
     def _cruza(self, a, b):
         assert(isinstance(a, int) and isinstance(b, int))
+        parent_a = self._individuos[a]
+        parent_b = self._individuos[b]
 
         if random() < self._prob_cruza:
-            hijo1, hijo2 = self._reproducir(a, b)
+            genes_child1, genes_child2 =  parent_a.crossover(parent_b)
+            child1 = self._create_crom(genes_child1)
+            child2 = self._create_crom(genes_child2)
         else:
-            hijo1 = deepcopy(self._individuos[a])
-            hijo2 = deepcopy(self._individuos[b])
+            child1 = copy(self._individuos[a])
+            child2 = copy(self._individuos[b])
         
-        if self._tipo_mutacion == 's':
-            if random() < self._prob_mutacion:
-                    self._mutar(hijo1)
-            if random() < self._prob_mutacion:
-                    self._mutar(hijo2)
-        elif self._tipo_mutacion == 'm':
-            self._mutar(hijo1)
-            self._mutar(hijo2)
+        if random() < self._prob_mutacion:
+            child1.mutate()
+        if random() < self._prob_mutacion:
+            child2.mutate()
         
-        self._next_generation.append(hijo1)
-        self._next_generation.append(hijo2)
+        self._next_generation.append(child1)
+        self._next_generation.append(child2)
         
-    def _reproducir(self, a, b):
-        punto_de_cruza = randint(1, self._l-1)
-        hijo1 = self._individuos[a][:punto_de_cruza] + self._individuos[b][punto_de_cruza:]
-        hijo2 = self._individuos[b][:punto_de_cruza] + self._individuos[a][punto_de_cruza:]
+####
 
-        return hijo1, hijo2
+    def _create_crom(self, genes_crom):
+        return Crom(0, self._max_length, self._problem, self._grammar, 
+                    cross_meth = self._crossover_method, genes=genes_crom)
 
-    def _mutar(self, indiv):
-        assert(isinstance(indiv, list))
-        if self._tipo_mutacion == 's':
-            punto_de_mutacion = randint(0, self._l-1)
-            indiv[punto_de_mutacion] = randint(0, 255)
-        elif self._tipo_mutacion == 'm':
-            for i in xrange(len(indiv)):
-                if random() <= self._prob_mutacion:
-                    indiv[i] = randint(0, 255)
+####
 
+    def show_all_indivs(self):
+        pprint(self._individuos)
+    def _get_median(self):
+        return self._fitness_list[self._n/2].fitness
+    def plot_medians(self):
+        if len(self._medians) > 0:
+            pylab.plot([math.log(me) for me in self._medians])
+            pylab.show()
+    def _average_length(self):
+        return sum(i.length() for i in self._individuos) / float(len(self._individuos))
+
+#### XXX borrable de aca pa'delante
+
+bnf = ''.join(open("bnf_lineal.txt", "r").readlines())
+bnf = parse_bnf(bnf)
+grammar = Grammar(bnf)
+assert(isinstance(grammar, Grammar))
 eq1 = "4*x**2*_y''_ + 17*_y_&_y(1)_+1&_y'(1)_+0.5"
 eq2 = "_y''_ - _y_&_y(0)_-1&_y'(0)_-1"
 eq3 = "_y''_ + _y_&_y(0)_-1&_y'(0)_-2"
-probl = Problema(bnf_filename="bnf.txt",ec=eq3,li=0,ps=10.0)
-pobl = Poblacion(100, 20, probl, pm=0.1, tm='s')
+eq4 = "_y'_ - ((2*x-_y_)/x)&_y(0.1)-20.1"
+eq5 = "_y_ - 2*math.sin(x) - math.cos(x)"
+problem = Problem(eq3, ff=100.0,li=0.0,ls=1.0,step=0.05)
+poblacion = Poblacion(250, 50, problem, grammar, ml=50, cm='one-point')
+poblacion.ev_and_print(1000, 0.001)
+
+#bnf = ''.join(open("bnf_paper.txt", "r").readlines())
+#grammar = Grammar(parse_bnf(bnf))
+#probl = Problem(grammar,ec=eq3,li=0,ps=10.0)
+#pobl = Poblacion(100, 20, probl, pm=0.1, tm='s')
