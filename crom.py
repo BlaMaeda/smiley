@@ -101,8 +101,8 @@ class Crom:
                              partner._genes[:crossover_point] +\
                              self._genes[crossover_point:]
         elif self._crossover_method == 'one-point':
-            cross_point_a = randint(1, len(self._genes)-1)
-            cross_point_b = randint(1, len(partner._genes)-1)
+            cross_point_a = randint(1, max(len(self._genes)-1, 1))
+            cross_point_b = randint(1, max(len(partner._genes)-1, 1))
             child1, child2 = self._genes[:cross_point_a] +\
                              partner._genes[cross_point_b:],\
                              partner._genes[:cross_point_b] +\

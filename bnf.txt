@@ -1,4 +1,4 @@
-<S>                 ::= <expr>
+<S>                 ::= <expr> #comment comment comment
 <expr>              ::= <expr> <biop> <expr> | <exprf> <biop> <exprf>
                         <uop> <expr> | <uop> <exprf>
                         math.log(abs(<expr>)) | math.exp(<expr>)

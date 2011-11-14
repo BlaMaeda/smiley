@@ -5,6 +5,7 @@ STATEMENT_FORMAT = '<S'
 VARIABLE_FORMAT = '(\<[^\>|^\s]+\>)'
 LEFT_DEL = '<'
 RIGHT_DEL = '>'
+COMMENT_SYMBOL = '#'
 
 bnf = """
 <S>                 ::= <expr>
@@ -41,6 +42,11 @@ def parse_bnf(bnf):
 #        print bnf
     bnf_dict = {}
     for item in bnf.split('\n'):
+        # Erase comment
+        comment_start = item.find(COMMENT_SYMBOL)
+        if comment_start != -1:
+            item = item[:comment_start]
+
         if item.find('::=') >= 0:
             key, values = item.split('::=')
             key = key.strip()

@@ -1,2 +1,2 @@
 -Comentarios en el paper en forma "# comment"
-
+-Hacer un main que use ConfigParser para correr el programa con las opciones dadas en un archivo

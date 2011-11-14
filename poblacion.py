@@ -1,7 +1,7 @@
 import random as random_module
 import math
 import pylab
-from random import randint, random
+from random import randint, random, choice
 from copy import copy
 from pprint import pprint
 from problem import Problem
@@ -18,7 +18,7 @@ class Pair:
         return "%i-%f" % (self.indice, self.fitness)
 
 class Poblacion:
-    def __init__(self, n, l, problem, grammar, ml=None, pc=0.8, pm=0.05, bg=0.1, elit=True, ff=1000.0, cm="homologous"):
+    def __init__(self, n, l, problem, grammar, ml=None, pc=0.8, pm=0.05, bg=0.1, elit=True, cm="homologous"):
         random_module.seed()
         
         self._n = n
@@ -33,7 +33,6 @@ class Poblacion:
         self._prob_mutacion = pm
         self._brecha_gen = bg
         self._elitismo = elit
-        self._fitness_fail = ff
         self._next_generation = []
         self._crossover_method = cm
         
@@ -177,9 +176,8 @@ class Poblacion:
             child1.mutate()
         if random() < self._prob_mutacion:
             child2.mutate()
-        
-        self._next_generation.append(child1)
-        self._next_generation.append(child2)
+
+        self._next_generation.append(choice([child1, child2]))
         
 ####
 
@@ -202,18 +200,18 @@ class Poblacion:
 
 #### XXX borrable de aca pa'delante
 
-bnf = ''.join(open("bnf_lineal.txt", "r").readlines())
-bnf = parse_bnf(bnf)
-grammar = Grammar(bnf)
-assert(isinstance(grammar, Grammar))
-eq1 = "4*x**2*_y''_ + 17*_y_&_y(1)_+1&_y'(1)_+0.5"
-eq2 = "_y''_ - _y_&_y(0)_-1&_y'(0)_-1"
-eq3 = "_y''_ + _y_&_y(0)_-1&_y'(0)_-2"
-eq4 = "_y'_ - ((2*x-_y_)/x)&_y(0.1)-20.1"
-eq5 = "_y_ - 2*math.sin(x) - math.cos(x)"
-problem = Problem(eq3, ff=100.0,li=0.0,ls=1.0,step=0.05)
-poblacion = Poblacion(250, 50, problem, grammar, ml=50, cm='one-point')
-poblacion.ev_and_print(1000, 0.001)
+#bnf = ''.join(open("bnf_lineal.txt", "r").readlines())
+#bnf = parse_bnf(bnf)
+#grammar = Grammar(bnf)
+#assert(isinstance(grammar, Grammar))
+#eq1 = "4*x**2*_y''_ + 17*_y_&_y(1)_+1&_y'(1)_+0.5"
+#eq2 = "_y''_ - _y_&_y(0)_-1&_y'(0)_-1"
+#eq3 = "_y''_ + _y_&_y(0)_-1&_y'(0)_-2"
+#eq4 = "_y'_ - ((2*x-_y_)/x)&_y(0.1)-20.1"
+#eq5 = "_y_ - 2*math.sin(x) - math.cos(x)"
+#problem = Problem(eq3, ff=100.0,li=0.0,ls=1.0,step=0.05)
+#poblacion = Poblacion(250, 50, problem, grammar, ml=50, cm='one-point')
+#poblacion.ev_and_print(1000, 0.001)
 
 #bnf = ''.join(open("bnf_paper.txt", "r").readlines())
 #grammar = Grammar(parse_bnf(bnf))

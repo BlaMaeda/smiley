@@ -9,12 +9,9 @@ SEP_EC = "&"
 ARG_COND = ".*\((.*)\).*"
 
 class Problem:
-    def __init__(self, ec=None, ff=1e4, li=0, ls=5, step=0.1, pa=1.0, ps=1.0):
-        if ec == None:
-            self._ecuacion = "_y_  + x**2"
-        else:
-            partes_ec = re.split(SEP_EC, ec)
-            self._ecuacion, self._condiciones = partes_ec[0], partes_ec[1:]
+    def __init__(self, ec, ff=1e4, li=0, ls=5, step=0.1, pa=1.0, ps=1.0):
+        partes_ec = re.split(SEP_EC, ec)
+        self._ecuacion, self._condiciones = partes_ec[0], partes_ec[1:]
         self._generar_ecuacion()
         self._generar_condiciones()
 
