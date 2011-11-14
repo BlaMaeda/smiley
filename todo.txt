@@ -1,2 +1,5 @@
--Comentarios en el paper en forma "# comment"
--Hacer un main que use ConfigParser para correr el programa con las opciones dadas en un archivo
+- Mejores funciones de graficacion (con sus respectivas opciones de historia)
+- Tipos de mutación como opciones
+
+Optimización:
+- Algunas cosas podrían hacerse en c y que python las use.
