@@ -16,8 +16,3 @@ class Grammar:
             rule, option = args
             size_rule = len(self._bnf[rule])
             return self._bnf[rule][option % size_rule]
-
-    def is_terminal(self, rule):
-        assert isinstance(rule, str)
-
-        return self._bnf.has_key(rule)

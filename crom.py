@@ -2,7 +2,6 @@ import re
 from random import randint, choice
 from problem import Problem
 from grammar import Grammar
-from parser import parse_bnf #XXX
 
 START_SYMBOL = "<S>"
 VARIABLE_FORMAT = '(\<[^\>|^\s]+\>)'
@@ -128,10 +127,3 @@ class Crom:
         return self._program
     def length(self):
         return len(self._genes)
-
-#### XXX Borrar a partir de aca
-
-#bnf = ''.join(open("bnf_paper.txt", "r").readlines())
-#bnf = parse_bnf(bnf)
-#grammar = Grammar(bnf)
-#problem = Problem("_y_ - x")

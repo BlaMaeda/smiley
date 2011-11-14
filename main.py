@@ -28,5 +28,7 @@ if __name__=='__main__':
         sys.exit(1)
     
     poblacion = config_to_population(config)
+
+    #------------------
     poblacion.ev_and_print(10000, 0.01)
     print poblacion.get_best_member()
