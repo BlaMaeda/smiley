@@ -2,6 +2,7 @@ import re
 from random import randint, choice
 from problem import Problem
 from grammar import Grammar
+from copy import deepcopy
 
 START_SYMBOL = "<S>"
 VARIABLE_FORMAT = '(\<[^\>|^\s]+\>)'
@@ -9,21 +10,26 @@ LEFT_DEL = '<'
 RIGHT_DEL = '>'
 
 class Crom:
-    def __init__ (self, length, max_length, problem, grammar, **kwargs):
+    def __init__ (self, length, max_length, problem, grammar, dict_meta,
+                  genes=None, cross_meth=None):
         self._length = length
         self._max_length = max_length
         self._problem = problem
         self._grammar = grammar
+        self._dict_meta = dict_meta
 
-        if kwargs.has_key('genes'):
-            self._genes = kwargs['genes']
-            self._length = len(self._genes)
-        else:
+        if genes is None:
             self._genes = []
             for i in xrange(length):
                 self._genes.append(randint(0, 255))
+        else:
+            self._genes = deepcopy(genes)
+            self._length = len(self._genes)
 
-        self._crossover_method = kwargs.get('cross_meth', 'homologous')
+        if cross_meth is None:
+            self._crossover_method = 'homologous'
+        else:
+            self._crossover_method = cross_meth
 
         self._generate_program()
 
@@ -48,16 +54,15 @@ class Crom:
 
             item = prg_list[i]
             if item != '' and item[0] == LEFT_DEL and item[-1] == RIGHT_DEL:
+                if j == self._max_length:
+                    break
                 if j == len(self._genes):
-                    if j == self._max_length:
-                        break
-                    else:
-                        self._genes.append(randint(0, 255))
+                    self._genes.append(randint(0, 255))
                 choice = self._genes[j]
                 replacement = self._grammar[item, choice]
                 replacement = re.split(VARIABLE_FORMAT, replacement)
                 prg_list = prg_list[0:i] + replacement + prg_list[i+1:]
-                extended_cromosom.append("T" if len(replacement) == 1 else "S")
+                extended_cromosom.append(self._dict_meta[item])
                 j += 1
             else:
                 i += 1
@@ -77,35 +82,48 @@ class Crom:
 
 ####
 
-    def mutate(self):
-        mutable_indexes = [i for i, v in enumerate(self._extended_cromosom) 
-                              if v == 'T']
-        index = choice(mutable_indexes)
+    def mutate(self): # XXX
+        assert(len(self._genes) == len(self._extended_cromosom))
         index = randint(0, len(self._genes)-1)
         self._genes[index] = randint(0, 255)
-        self._generate_program()
 
 ####
 
     def crossover(self, partner):
+        assert(len(self._genes) == len(self._extended_cromosom))
         if self._crossover_method == 'homologous':
             min_length = min(len(self._genes), len(partner._genes))
-            if min_length > 1: # atadura con alambres para cuando los dos padrestienen longitud = 1
-                crossover_point = randint(1, min_length-1)
-            else:
-                crossover_point = 1 # los hijos son iguales
+            crossover_point = randint(0, min_length-1)
 
+            # TODO factor comun de esto que sigue
             child1, child2 = self._genes[:crossover_point] +\
                              partner._genes[crossover_point:],\
                              partner._genes[:crossover_point] +\
                              self._genes[crossover_point:]
         elif self._crossover_method == 'one-point':
-            cross_point_a = randint(1, max(len(self._genes)-1, 1))
-            cross_point_b = randint(1, max(len(partner._genes)-1, 1))
+            cross_point_a = randint(0, len(self._genes)-1)
+            cross_point_b = randint(0, len(partner._genes)-1)
             child1, child2 = self._genes[:cross_point_a] +\
                              partner._genes[cross_point_b:],\
                              partner._genes[:cross_point_b] +\
                              self._genes[cross_point_a:]
+        elif self._crossover_method == 'analogous':
+            cross_point_a = randint(0, len(self._genes)-1)
+            meta_a = self._extended_cromosom[cross_point_a]
+            crossable_indexes = [i for i, v in enumerate(partner._extended_cromosom) 
+                                  if v == meta_a]
+            if crossable_indexes:
+                cross_point_b = choice(crossable_indexes)
+            else:
+                # TODO Hay otras formas de hacer esto: no hacer la cruza,
+                # elegir otro cross_point_a (dudoso), etc. Por ahora
+                # usamos esto.
+                cross_point_b = randint(0, len(partner._genes)-1)
+            child1, child2 = self._genes[:cross_point_a] +\
+                             partner._genes[cross_point_b:],\
+                             partner._genes[:cross_point_b] +\
+                             self._genes[cross_point_a:]
+
 
         return child1, child2
 

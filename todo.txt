@@ -1,5 +1,8 @@
 - Mejores funciones de graficacion (con sus respectivas opciones de historia)
 - Tipos de mutación como opciones
+- Si no se especifica un bnf_meta, busca un archivo con el mismo nombre del bnf pero
+  agregandole "_meta". Así no hay que cambiar dos cosas cada vez que cambia de bnf
+  (si es que siguen esa convención).
 
 Optimización:
 - Algunas cosas podrían hacerse en c y que python las use.

@@ -21,6 +21,7 @@ STEP_PARAMETER = 'step'
 ADJUSTMENT_WEIGHT_PARAMETER = 'peso_ajuste'
 SATISFACTION_WEIGHT_PARAMETER = 'peso_satisfaccion'
 BNF_FILENAME_PARAMETER = 'bnf_filename'
+BNF_META_FILENAME_PARAMETER = 'bnf_meta_filename'
 
 def config_to_population(config):
     # Default values
@@ -79,8 +80,15 @@ def config_to_population(config):
         bnf_filename = config.get(SECTION, BNF_FILENAME_PARAMETER)
     else:
         raise Exception, "%s parameter is required" % BNF_FILENAME_PARAMETER
-    bnf = ''.join(open(bnf_filename, 'r').readlines())
-    grammar = Grammar(parse_bnf(bnf))
+    if config.has_option(SECTION, BNF_META_FILENAME_PARAMETER):
+        bnf_meta_filename = config.get(SECTION, BNF_META_FILENAME_PARAMETER)
+    else:
+        raise Exception, "%s parameter is required" % BNF_META_FILENAME_PARAMETER
 
-    popul = Poblacion(n, l, problem, grammar, ml, pc, pm, bg, elit, cm)
+    bnf = ''.join(open(bnf_filename, 'r').readlines())
+    bnf_meta = ''.join(open(bnf_meta_filename, 'r').readlines())
+    grammar = Grammar(parse_bnf(bnf))
+    dict_meta = parse_bnf(bnf_meta)
+
+    popul = Poblacion(n, l, problem, grammar, dict_meta, ml, pc, pm, bg, elit, cm)
     return popul

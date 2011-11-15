@@ -18,7 +18,8 @@ class Pair:
         return "%i-%f" % (self.indice, self.fitness)
 
 class Poblacion:
-    def __init__(self, n, l, problem, grammar, ml=None, pc=0.8, pm=0.05, bg=0.1, elit=True, cm="homologous"):
+    def __init__(self, n, l, problem, grammar, dict_meta, 
+                 ml=None, pc=0.8, pm=0.05, bg=0.1, elit=True, cm="homologous"):
         random_module.seed()
         
         self._n = n
@@ -29,6 +30,7 @@ class Poblacion:
             self._max_length = ml
         self._problem = problem
         self._grammar = grammar
+        self._dict_meta = dict_meta
         self._prob_cruza = pc
         self._prob_mutacion = pm
         self._brecha_gen = bg
@@ -38,7 +40,8 @@ class Poblacion:
         
         self._individuos = []
         for i in xrange(n):
-            self._individuos.append(Crom(l, self._max_length, self._problem, self._grammar,
+            self._individuos.append(Crom(l, self._max_length, self._problem, 
+                                         self._grammar, self._dict_meta,
                                          cross_meth = self._crossover_method))
 
 ####
@@ -89,6 +92,8 @@ class Poblacion:
                   "fitness mediana:", self._fitness_list[self._n/2].fitness,\
                   "invalidos:", sum(1 for indiv in self._individuos if not indiv._valid),\
                   "promedio longitud", self._average_length()
+            print "Mejor individuo:"
+            print self.get_best_member()
             #self.show_all_indivs(); xxx = raw_input()
             #print str([len(j) for j in self._individuos])
             #print "fitness medio: ", sum(j.fitness for j in self._fitness_list)/float(self._n)
@@ -120,16 +125,16 @@ class Poblacion:
         i = 0
         while i < cant_padres:
             fin_ventana = n-i-1
-            a = randint(0, fin_ventana)
-            b = randint(0, fin_ventana)
+            a = aptitudes[randint(0, fin_ventana)].indice
+            b = aptitudes[randint(0, fin_ventana)].indice
             self._cruza(a, b)
             self._next_generation.append(self._individuos[a if randint(0,1) else b])
             i += 1
         
         while len(self._next_generation) < n:
             fin_ventana = n-i-1
-            a = randint(0, fin_ventana)
-            b = randint(0, fin_ventana)
+            a = aptitudes[randint(0, fin_ventana)].indice
+            b = aptitudes[randint(0, fin_ventana)].indice
             self._cruza(a, b)
             i += 1
         
@@ -140,21 +145,7 @@ class Poblacion:
         assert(len(self._next_generation) == n)
         
         self._individuos = [copy(i) for i in self._next_generation]
-        try:
-            assert(self._individuos == self._next_generation)
-        except: 
-            for i in xrange(len(self._individuos)):
-                indiv = self._individuos[i]
-                ng = self._next_generation[i]
-                try:
-                    assert indiv == ng
-                except:
-                    raise AssertionError, ("index %i" % i)
-                #print "Individuo", i
-                #print "Genes:", str(indiv._genes)
-                #print "Genes:", str(ng._genes)
-                #print "Ext:", str(indiv._extended_cromosom)
-                #print "Ext:", str(ng._extended_cromosom)
+        assert(self._individuos == self._next_generation)
         self._next_generation = []
 
 ####
@@ -166,23 +157,27 @@ class Poblacion:
 
         if random() < self._prob_cruza:
             genes_child1, genes_child2 =  parent_a.crossover(parent_b)
-            child1 = self._create_crom(genes_child1)
-            child2 = self._create_crom(genes_child2)
         else:
-            child1 = copy(self._individuos[a])
-            child2 = copy(self._individuos[b])
+            genes_child1 = copy(self._individuos[a]._genes)
+            genes_child2 = copy(self._individuos[b]._genes)
         
         if random() < self._prob_mutacion:
-            child1.mutate()
+            index = randint(0, len(genes_child1)-1)
+            genes_child1[index] = randint(0, 255)
         if random() < self._prob_mutacion:
-            child2.mutate()
+            index = randint(0, len(genes_child2)-1)
+            genes_child2[index] = randint(0, 255)
 
-        self._next_generation.append(choice([child1, child2]))
+        child1 = self._create_crom(genes_child1)
+        child2 = self._create_crom(genes_child2)
+        self._next_generation.append(child1)
+        self._next_generation.append(child2)
         
 ####
 
     def _create_crom(self, genes_crom):
-        return Crom(0, self._max_length, self._problem, self._grammar, 
+        return Crom(0, self._max_length, self._problem, 
+                    self._grammar, self._dict_meta,
                     cross_meth = self._crossover_method, genes=genes_crom)
 
 ####
