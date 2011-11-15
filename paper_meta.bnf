@@ -1,5 +1,0 @@
-<expr>              ::= EXPR
-<op>                ::= OP
-<func>              ::= FUNC
-<digit>             ::= DIGIT
-<x>                 ::= VARIABLE
