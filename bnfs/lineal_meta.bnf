@@ -1,0 +1,6 @@
+<expr>              ::= EXPR
+<exp>               ::= EXP
+<exp_senoidal>      ::= EXP_S
+<x>                 ::= VARIABLE
+<real>              ::= REAL
+<int>               ::= INTEGER

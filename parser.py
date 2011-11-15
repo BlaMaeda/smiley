@@ -1,9 +1,11 @@
 import re
+from grammar import Grammar
 
 STATEMENT_FORMAT = '<S'
 VARIABLE_FORMAT = '(\<[^\>|^\s]+\>)'
 LEFT_DEL = '<'
 RIGHT_DEL = '>'
+COMMENT_SYMBOL = '#'
 
 bnf = """
 <S>                 ::= <expr>
@@ -35,9 +37,16 @@ def strip_spaces(key, values):
     return values
 
 def parse_bnf(bnf):
-
+#    if isinstance(bnf, str): # filename
+#        bnf = ''.join(open(bnf, "r").readlines())
+#        print bnf
     bnf_dict = {}
     for item in bnf.split('\n'):
+        # Erase comment
+        comment_start = item.find(COMMENT_SYMBOL)
+        if comment_start != -1:
+            item = item[:comment_start]
+
         if item.find('::=') >= 0:
             key, values = item.split('::=')
             key = key.strip()
@@ -54,14 +63,20 @@ def parse_bnf(bnf):
             pass
     return bnf_dict
 
-def parse_program(bnf, indiv, wrap=False):
-    if not isinstance(bnf, dict):
-        msg = "bnf must be a dict"
-        raise ValueError(msg)
+def parse_program(grammar, int_list):
+    """ Given a grammar and a list with integers, returns 
+        the program obtained from using the grammar
+        with the list.
+    """
+    assert isinstance(grammar, Grammar),\
+            "'grammar' must be an instance of Grammar."
+    assert all(isinstance(i, int) for i in int_list),\
+            "'int_list' must be a list of integers."
 
     complete = False
+    extended_cromosom = []
 
-    program = bnf['<S>'][0]
+    program = grammar['<S>', 0]
     prg_list = re.split(VARIABLE_FORMAT, program)
     i = 0
     j = 0
@@ -69,20 +84,28 @@ def parse_program(bnf, indiv, wrap=False):
         if i == len(prg_list):
             complete = True
             break
+
         item = prg_list[i]
-        if item != '' and item[0] == LEFT_DEL and item[-1] == RIGHT_DEL:
-            if j == len(indiv):
-                if wrap:
-                    pass # aca va el wrapping
-                else:
-                    break
-            ind = indiv[j] % len(bnf[item])
-            replacement = bnf[item][ind]
+        if item.strip() == '':
+            i += 1
+        elif item[0] == LEFT_DEL and item[-1] == RIGHT_DEL:
+            if j == len(int_list):
+                break
+            ind = int_list[j]
+            replacement = grammar[item, ind]
             replacement = re.split(VARIABLE_FORMAT, replacement)
             prg_list = prg_list[0:i] + replacement + prg_list[i+1:]
+            extended_cromosom.append("T" if len(replacement) == 1 else "S")
+            print extended_cromosom[j], len([1 for k in replacement if re.match(VARIABLE_FORMAT, k)])
             j += 1
         else:
             i += 1
     
     program = ''.join(prg_list)
-    return complete, program
+    
+    return complete, extended_cromosom, program
+
+#bnf = ''.join(open("bnf_paper.txt", "r").readlines())
+#bnf = parse_bnf(bnf)
+#grammar = Grammar(bnf)
+#indiv = [7, 1, 3, 3, 1, 1, 1, 7]

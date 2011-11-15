@@ -1,0 +1,22 @@
+<S>                 ::= <expr> #comment comment comment
+<expr>              ::= <expr> <biop> <expr> 
+                        <uop> <expr>
+                        (<expr>) 
+                        <log>
+                        <pow>
+                        <sqrt>
+                        <trig>
+                        <num>
+                        <x>
+<biop>              ::= + | - | * | /
+<uop>               ::= + | -
+<log>               ::= math.log(abs(<expr>)) | math.exp(<expr>)
+                        math.log(abs(<x>)) | math.exp(<x>)
+<pow>               ::= pow(abs(<expr> ), <num>) | pow(abs(<x> ), <num>)
+<sqrt>              ::= math.sqrt(abs(<expr>)) | math.sqrt(abs(<x>))
+<trig>              ::= math.sin(<expr> ) | math.cos(<expr> ) 
+                        math.sin(<x> ) | math.cos(<x> ) 
+<x>                 ::= x | -x
+<num>               ::= <real> | <int>
+<real>              ::= <int>.<int>
+<int>               ::= <int><int> | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 0

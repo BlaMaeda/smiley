@@ -1,0 +1,11 @@
+<expr>              ::= EXPR
+<biop>              ::= BIOP
+<uop>               ::= UOP
+<log>               ::= LOG
+<pow>               ::= POW
+<sqrt>              ::= SQRT
+<trig>              ::= TRIG
+<x>                 ::= VARIABLE
+<num>               ::= NUM
+<real>              ::= NUM
+<int>         ::= NUM
