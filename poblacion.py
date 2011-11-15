@@ -108,8 +108,6 @@ class Poblacion:
         else:
             print "Convergencia en %i generaciones" % i
 
-        self.plot_medians()
-
 ####
 
     def evolucionar(self):
@@ -192,6 +190,8 @@ class Poblacion:
             pylab.show()
     def _average_length(self):
         return sum(i.length() for i in self._individuos) / float(len(self._individuos))
+    def __getitem__(self, index):
+        return self._individuos[index]
 
 #### XXX borrable de aca pa'delante
 

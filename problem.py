@@ -34,7 +34,8 @@ class Problem:
                     ecuacion += "f(x)"
                 else:
                     npuntos = orden + (1 if orden%2==0 else 2)
-                    ecuacion += "scipy.derivative(f, x, dx=1e-3, n=%i, order=%i)" % (orden, npuntos)
+                    ecuacion += "scipy.derivative(f, x, dx=0.01, n=%i, order=%i)" % \
+                                 (orden, max(5, npuntos)) # TODO optimizar dx/order?
             else:
                 ecuacion += parte
         ecuacion += ")"
@@ -55,7 +56,8 @@ class Problem:
                         condicion += "f(%s)" % argumento
                     else:
                         npuntos = orden + (1 if orden%2==0 else 2)
-                        condicion += "scipy.derivative(f, %s, dx=1e-3, n=%i, order=%i)" % (argumento, orden, npuntos)
+                        condicion += "scipy.derivative(f, %s, dx=0.01, n=%i, order=%i)" % \
+                                      (argumento, orden, max(5, npuntos))
                 else:
                     condicion += parte
             condicion += ")"

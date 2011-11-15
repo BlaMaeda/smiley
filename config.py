@@ -1,3 +1,4 @@
+import os
 from poblacion import Poblacion
 from problem import Problem
 from grammar import Grammar
@@ -22,6 +23,7 @@ ADJUSTMENT_WEIGHT_PARAMETER = 'peso_ajuste'
 SATISFACTION_WEIGHT_PARAMETER = 'peso_satisfaccion'
 BNF_FILENAME_PARAMETER = 'bnf_filename'
 BNF_META_FILENAME_PARAMETER = 'bnf_meta_filename'
+META_SUFFIX = '_meta'
 
 def config_to_population(config):
     # Default values
@@ -80,14 +82,24 @@ def config_to_population(config):
         bnf_filename = config.get(SECTION, BNF_FILENAME_PARAMETER)
     else:
         raise Exception, "%s parameter is required" % BNF_FILENAME_PARAMETER
-    if config.has_option(SECTION, BNF_META_FILENAME_PARAMETER):
-        bnf_meta_filename = config.get(SECTION, BNF_META_FILENAME_PARAMETER)
-    else:
-        raise Exception, "%s parameter is required" % BNF_META_FILENAME_PARAMETER
+    if not os.path.isfile(bnf_filename):
+        raise Exception, "%s doesn't exist" % bnf_filename
 
     bnf = ''.join(open(bnf_filename, 'r').readlines())
-    bnf_meta = ''.join(open(bnf_meta_filename, 'r').readlines())
     grammar = Grammar(parse_bnf(bnf))
+
+    # Meta grammar parameters
+    if config.has_option(SECTION, BNF_META_FILENAME_PARAMETER):
+        bnf_meta_filename = config.get(SECTION, BNF_META_FILENAME_PARAMETER)
+        if not os.path.isfile(bnf_meta_filename):
+            raise Exception, "%s doesn't exist" % bnf_meta_filename
+    else:
+        bnffn = os.path.splitext(bnf_filename)
+        bnf_meta_filename = bnffn[0] + META_SUFFIX + bnffn[1]
+        if not os.path.isfile(bnf_meta_filename):
+            raise Exception, "%s parameter is required" % BNF_META_FILENAME_PARAMETER
+
+    bnf_meta = ''.join(open(bnf_meta_filename, 'r').readlines())
     dict_meta = parse_bnf(bnf_meta)
 
     popul = Poblacion(n, l, problem, grammar, dict_meta, ml, pc, pm, bg, elit, cm)
