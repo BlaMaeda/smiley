@@ -68,10 +68,6 @@ def parse_program(grammar, int_list):
         the program obtained from using the grammar
         with the list.
     """
-    assert isinstance(grammar, Grammar),\
-            "'grammar' must be an instance of Grammar."
-    assert all(isinstance(i, int) for i in int_list),\
-            "'int_list' must be a list of integers."
 
     complete = False
     extended_cromosom = []

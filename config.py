@@ -101,6 +101,7 @@ def config_to_population(config):
 
     bnf_meta = ''.join(open(bnf_meta_filename, 'r').readlines())
     dict_meta = parse_bnf(bnf_meta)
+    dict_meta = dict((k,v[0]) for (k,v) in dict_meta.items())
 
     popul = Poblacion(n, l, problem, grammar, dict_meta, ml, pc, pm, bg, elit, cm)
     return popul

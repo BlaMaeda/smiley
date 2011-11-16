@@ -11,6 +11,7 @@ ARG_COND = ".*\((.*)\).*"
 class Problem:
     def __init__(self, ec, ff=1e4, li=0, ls=5, step=0.1, pa=1.0, ps=1.0):
         partes_ec = re.split(SEP_EC, ec)
+        self._arg_ec = ec
         self._ecuacion, self._condiciones = partes_ec[0], partes_ec[1:]
         self._generar_ecuacion()
         self._generar_condiciones()
@@ -66,7 +67,6 @@ class Problem:
 
 
     def eval_fitness(self, program):
-        assert(isinstance(program, str))
         x = self._lim_inf
         ajuste = 0.0
         f = lambda x: eval(program)
@@ -116,3 +116,5 @@ class Problem:
                 plot(x, [f(i) for i in x])
             show()
 
+    def __str__(self):
+        return self._arg_ec

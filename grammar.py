@@ -16,3 +16,5 @@ class Grammar:
             rule, option = args
             size_rule = len(self._bnf[rule])
             return self._bnf[rule][option % size_rule]
+    def __str__(self):
+        return str(self._bnf)

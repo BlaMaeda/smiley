@@ -71,42 +71,28 @@ class Crom:
         self._program = ''.join(prg_list)
         self._extended_cromosom = extended_cromosom
         self._valid = complete
+        self._length = len(self._genes)
 
 ####
 
     def eval_fitness(self):
         if self._valid:
-            return self._problem.eval_fitness(self._program)
+            fitness = self._problem.eval_fitness(self._program)
         else:
-            return self._problem.get_fitness_fail()
+            fitness = self._problem.get_fitness_fail()
 
-####
-
-    def mutate(self): # XXX
-        assert(len(self._genes) == len(self._extended_cromosom))
-        index = randint(0, len(self._genes)-1)
-        self._genes[index] = randint(0, 255)
+        return fitness
 
 ####
 
     def crossover(self, partner):
-        assert(len(self._genes) == len(self._extended_cromosom))
         if self._crossover_method == 'homologous':
             min_length = min(len(self._genes), len(partner._genes))
             crossover_point = randint(0, min_length-1)
-
-            # TODO factor comun de esto que sigue
-            child1, child2 = self._genes[:crossover_point] +\
-                             partner._genes[crossover_point:],\
-                             partner._genes[:crossover_point] +\
-                             self._genes[crossover_point:]
+            cross_point_a = cross_point_b = crossover_point
         elif self._crossover_method == 'one-point':
             cross_point_a = randint(0, len(self._genes)-1)
             cross_point_b = randint(0, len(partner._genes)-1)
-            child1, child2 = self._genes[:cross_point_a] +\
-                             partner._genes[cross_point_b:],\
-                             partner._genes[:cross_point_b] +\
-                             self._genes[cross_point_a:]
         elif self._crossover_method == 'analogous':
             cross_point_a = randint(0, len(self._genes)-1)
             meta_a = self._extended_cromosom[cross_point_a]
@@ -119,11 +105,13 @@ class Crom:
                 # elegir otro cross_point_a (dudoso), etc. Por ahora
                 # usamos esto.
                 cross_point_b = randint(0, len(partner._genes)-1)
-            child1, child2 = self._genes[:cross_point_a] +\
-                             partner._genes[cross_point_b:],\
-                             partner._genes[:cross_point_b] +\
-                             self._genes[cross_point_a:]
+        else:
+            raise Exception, "unknown crossover method: %s" % self._crossover_method
 
+        child1, child2 = self._genes[:cross_point_a] +\
+                         partner._genes[cross_point_b:],\
+                         partner._genes[:cross_point_b] +\
+                         self._genes[cross_point_a:]
 
         return child1, child2
 
@@ -134,6 +122,8 @@ class Crom:
                self._extended_cromosom == crom._extended_cromosom and\
                self._program           == crom._program and\
                self._grammar           == crom._grammar and\
+               self._dict_meta         == crom._dict_meta and\
+               self._length            == crom._length and\
                self._max_length        == crom._max_length and\
                self._valid             == crom._valid
 
@@ -145,3 +135,5 @@ class Crom:
         return self._program
     def length(self):
         return len(self._genes)
+    def __getitem__(self, index):
+        return self._genes[index]

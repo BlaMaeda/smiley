@@ -1,3 +1,4 @@
+import sys
 import random as random_module
 import math
 import pylab
@@ -7,7 +8,6 @@ from pprint import pprint
 from problem import Problem
 from grammar import Grammar
 from crom import Crom
-from parser import parse_bnf #XXX
 
 class Pair:
     def __init__(self, i, f):
@@ -35,14 +35,15 @@ class Poblacion:
         self._prob_mutacion = pm
         self._brecha_gen = bg
         self._elitismo = elit
-        self._next_generation = []
         self._crossover_method = cm
         
         self._individuos = []
+        self._next_generation = []
         for i in xrange(n):
-            self._individuos.append(Crom(l, self._max_length, self._problem, 
+            self._individuos.append(Crom(self._l, self._max_length, self._problem, 
                                          self._grammar, self._dict_meta,
                                          cross_meth = self._crossover_method))
+
 
 ####
 
@@ -51,14 +52,6 @@ class Poblacion:
         for i, indiv in enumerate(individuos):
             fitness_list.append(Pair(i, indiv.eval_fitness()))
         return fitness_list
-
-####
-
-    def _compute_fitness(self, ind_indiv): # XXX borrable
-        fin, fitness = self._problem.eval_fitness(self._individuos[ind_indiv])
-        if fin != -1: # individuo valido
-            self._contract_indiv(ind_indiv, fin)
-        return fitness
 
 ####
 
@@ -79,7 +72,6 @@ class Poblacion:
 ####
 
     def ev_and_print(self, maxit, tol):
-        assert(isinstance(maxit, int))
         
         self._medians = []
         i = 0
@@ -94,10 +86,6 @@ class Poblacion:
                   "promedio longitud", self._average_length()
             print "Mejor individuo:"
             print self.get_best_member()
-            #self.show_all_indivs(); xxx = raw_input()
-            #print str([len(j) for j in self._individuos])
-            #print "fitness medio: ", sum(j.fitness for j in self._fitness_list)/float(self._n)
-            #print [str(j) for j in sorted(self._fitness_list)]
             if mejor_fitness <= tol:
                 break
             self.evolucionar()
@@ -112,14 +100,13 @@ class Poblacion:
 
     def evolucionar(self):
         n = self._n
-        cant_padres = round(n * self._brecha_gen)
+        cant_padres = int(round(n * self._brecha_gen))
         aptitudes = sorted(self._fitness_list)
 
-        assert(len(self._next_generation) == 0)
 
         if (self._elitismo):
             self._next_generation.append(self._individuos[aptitudes[0].indice])
-        
+
         i = 0
         while i < cant_padres:
             fin_ventana = n-i-1
@@ -139,17 +126,15 @@ class Poblacion:
         if len(self._next_generation) > n:
             ind_eliminar = randint(1 if self._elitismo else 0, n-1)
             self._next_generation = self._next_generation[:ind_eliminar] + self._next_generation[ind_eliminar+1:]
+            
         
-        assert(len(self._next_generation) == n)
         
         self._individuos = [copy(i) for i in self._next_generation]
-        assert(self._individuos == self._next_generation)
         self._next_generation = []
 
 ####
 
     def _cruza(self, a, b):
-        assert(isinstance(a, int) and isinstance(b, int))
         parent_a = self._individuos[a]
         parent_b = self._individuos[b]
 
@@ -183,7 +168,9 @@ class Poblacion:
     def show_all_indivs(self):
         pprint(self._individuos)
     def _get_median(self):
-        return self._fitness_list[self._n/2].fitness
+        median_index = self._n/2
+        median = self._fitness_list[median_index].fitness
+        return median
     def plot_medians(self):
         if len(self._medians) > 0:
             pylab.plot([math.log(me) for me in self._medians])
@@ -192,23 +179,3 @@ class Poblacion:
         return sum(i.length() for i in self._individuos) / float(len(self._individuos))
     def __getitem__(self, index):
         return self._individuos[index]
-
-#### XXX borrable de aca pa'delante
-
-#bnf = ''.join(open("bnf_lineal.txt", "r").readlines())
-#bnf = parse_bnf(bnf)
-#grammar = Grammar(bnf)
-#assert(isinstance(grammar, Grammar))
-#eq1 = "4*x**2*_y''_ + 17*_y_&_y(1)_+1&_y'(1)_+0.5"
-#eq2 = "_y''_ - _y_&_y(0)_-1&_y'(0)_-1"
-#eq3 = "_y''_ + _y_&_y(0)_-1&_y'(0)_-2"
-#eq4 = "_y'_ - ((2*x-_y_)/x)&_y(0.1)-20.1"
-#eq5 = "_y_ - 2*math.sin(x) - math.cos(x)"
-#problem = Problem(eq3, ff=100.0,li=0.0,ls=1.0,step=0.05)
-#poblacion = Poblacion(250, 50, problem, grammar, ml=50, cm='one-point')
-#poblacion.ev_and_print(1000, 0.001)
-
-#bnf = ''.join(open("bnf_paper.txt", "r").readlines())
-#grammar = Grammar(parse_bnf(bnf))
-#probl = Problem(grammar,ec=eq3,li=0,ps=10.0)
-#pobl = Poblacion(100, 20, probl, pm=0.1, tm='s')
