@@ -8,4 +8,4 @@
 <x>                 ::= VARIABLE
 <num>               ::= NUM
 <real>              ::= NUM
-<int>         ::= NUM
+<int>               ::= NUM

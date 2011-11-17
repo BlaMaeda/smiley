@@ -76,11 +76,12 @@ class Problem:
                 fitness = eval(self._ecuacion)
             except:
                 return self._fitness_fail
-            ajuste += fitness
+            ajuste = max(ajuste, fitness)
             x += self._step
         
         satisfaccion = 0.0
-        mult_satisfaccion = round((self._lim_sup - self._lim_inf) / self._step)
+        mult_satisfaccion = 1.0 # XXX
+        #mult_satisfaccion = round((self._lim_sup - self._lim_inf) / self._step)
         for condicion in self._condiciones:
             try:
                 fitness = eval(condicion)

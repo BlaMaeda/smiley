@@ -1,0 +1,4 @@
+<vnum>              ::= VNUM
+<num>               ::= NUM
+<digit>             ::= DIGIT
+<pdigit>            ::= DIGIT

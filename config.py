@@ -11,6 +11,7 @@ LENGTH_PARAMETER = 'length'
 MAX_LENGTH_PARAMETER = 'max_length'
 CROSSOVER_RATE_PARAMETER = 'probabilidad_de_cruza'
 MUTATION_RATE_PARAMETER = 'probabilidad_de_mutacion'
+MUTATION_TYPE_PARAMETER = 'tipo_de_mutacion'
 GENERATION_GAP_PARAMETER = 'brecha_generacional'
 ELITISM_PARAMETER = 'elitismo'
 CROSSOVER_METHOD_PARAMETER = 'crossover_method'
@@ -32,6 +33,7 @@ def config_to_population(config):
     ml = 50
     pc = 0.8
     pm = 0.05
+    tm = 'simple'
     bg = 0.1
     elit = True
     cm = 'homologous'
@@ -53,6 +55,8 @@ def config_to_population(config):
         pc = config.getfloat(SECTION, CROSSOVER_RATE_PARAMETER)
     if config.has_option(SECTION, MUTATION_RATE_PARAMETER):
         pm = config.getfloat(SECTION, MUTATION_RATE_PARAMETER)
+    if config.has_option(SECTION, MUTATION_TYPE_PARAMETER):
+        tm = config.get(SECTION, MUTATION_TYPE_PARAMETER)
     if config.has_option(SECTION, GENERATION_GAP_PARAMETER):
         bg = config.getfloat(SECTION, GENERATION_GAP_PARAMETER)
     if config.has_option(SECTION, ELITISM_PARAMETER):
@@ -103,5 +107,5 @@ def config_to_population(config):
     dict_meta = parse_bnf(bnf_meta)
     dict_meta = dict((k,v[0]) for (k,v) in dict_meta.items())
 
-    popul = Poblacion(n, l, problem, grammar, dict_meta, ml, pc, pm, bg, elit, cm)
+    popul = Poblacion(n, l, problem, grammar, dict_meta, ml, pc, pm, tm, bg, elit, cm)
     return popul

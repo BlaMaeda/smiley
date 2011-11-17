@@ -19,7 +19,7 @@ class Pair:
 
 class Poblacion:
     def __init__(self, n, l, problem, grammar, dict_meta, 
-                 ml=None, pc=0.8, pm=0.05, bg=0.1, elit=True, cm="homologous"):
+                 ml=None, pc=0.8, pm=0.05, tm='simple', bg=0.1, elit=True, cm="homologous"):
         random_module.seed()
         
         self._n = n
@@ -33,6 +33,8 @@ class Poblacion:
         self._dict_meta = dict_meta
         self._prob_cruza = pc
         self._prob_mutacion = pm
+        self._tipo_mutacion = tm
+        assert(isinstance(self._tipo_mutacion, str))
         self._brecha_gen = bg
         self._elitismo = elit
         self._crossover_method = cm
@@ -74,11 +76,13 @@ class Poblacion:
     def ev_and_print(self, maxit, tol):
         
         self._medians = []
+        self._bests = []
         i = 0
         while i < maxit:
             self._fitness_list = sorted(self._compute_fitness_list(self._individuos))
             mejor_fitness = self.get_best_fitness()
             self._medians.append(self._get_median())
+            self._bests.append(mejor_fitness)
             print "Generacion", i
             print "mejor fitness:", mejor_fitness, \
                   "fitness mediana:", self._fitness_list[self._n/2].fitness,\
@@ -144,18 +148,36 @@ class Poblacion:
             genes_child1 = copy(self._individuos[a]._genes)
             genes_child2 = copy(self._individuos[b]._genes)
         
-        if random() < self._prob_mutacion:
-            index = randint(0, len(genes_child1)-1)
-            genes_child1[index] = randint(0, 255)
-        if random() < self._prob_mutacion:
-            index = randint(0, len(genes_child2)-1)
-            genes_child2[index] = randint(0, 255)
+        #if random() < self._prob_mutacion:
+        self._mutate(genes_child1)
+            #index = randint(0, len(genes_child1)-1) # XXX
+            #genes_child1[index] = randint(0, 255)
+        #if random() < self._prob_mutacion:
+        self._mutate(genes_child2)
+            #index = randint(0, len(genes_child2)-1) # XXX
+            #genes_child2[index] = randint(0, 255)
 
         child1 = self._create_crom(genes_child1)
         child2 = self._create_crom(genes_child2)
         self._next_generation.append(child1)
         self._next_generation.append(child2)
         
+####
+    
+    def _mutate(self, genes):
+        if self._tipo_mutacion == 'simple':
+            if random() < self._prob_mutacion:
+                index = randint(0, len(genes)-1)
+                genes[index] = randint(0, 255)
+        elif self._tipo_mutacion == 'multiple':
+            for index in xrange(len(genes)):
+                if random() < self._prob_mutacion:
+                    genes[index] = randint(0, 255)
+        else:
+            raise Exception, "Tipo de mutacion invalido: %s" % self._tipo_mutacion
+
+
+
 ####
 
     def _create_crom(self, genes_crom):
@@ -165,16 +187,26 @@ class Poblacion:
 
 ####
 
+    def plot_medians(self):
+        if len(self._medians) > 0:
+            pylab.plot([math.log(me) for me in self._medians])
+            pylab.show()
+    
+    def plot_stats(self):
+        if len(self._medians) > 0:
+            pylab.plot([math.log(me+1) for me in self._medians])
+        if len(self._bests) > 0:
+            pylab.plot([math.log(be+1) for be in self._bests])
+        pylab.show()
+
+####
+
     def show_all_indivs(self):
         pprint(self._individuos)
     def _get_median(self):
         median_index = self._n/2
         median = self._fitness_list[median_index].fitness
         return median
-    def plot_medians(self):
-        if len(self._medians) > 0:
-            pylab.plot([math.log(me) for me in self._medians])
-            pylab.show()
     def _average_length(self):
         return sum(i.length() for i in self._individuos) / float(len(self._individuos))
     def __getitem__(self, index):

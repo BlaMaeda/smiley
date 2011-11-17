@@ -6,5 +6,5 @@
                         <x>
 <op>                ::= + | - | * | /
 <func>              ::= math.sin | math.cos | math.exp | math.log
-<digit>             ::= 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 0
+<digit>             ::= <digit><digit> | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 0
 <x>                 ::= x | -x
